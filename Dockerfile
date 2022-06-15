@@ -8,4 +8,4 @@ COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 WORKDIR /app
 STOPSIGNAL SIGINT
-CMD ["php", "-S", "0.0.0.0:80", "-t", "/app/public"]
+CMD ["php", "/app/scripts/start.php"]
