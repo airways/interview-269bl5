@@ -19,7 +19,7 @@
                 <td>
                     <div>{{ invoice.first_name }} {{ invoice.last_name }}</div>
                     {% if invoice.balance > 0 %}
-                        <div><button class="send-reminder-button">Send reminder email</button></div>
+                        <div><button class="send-reminder-button" disabled data-invoice_id="{{ invoice.invoice_id }}">Send reminder email</button></div>
                     {% endif %}
                 </td>
                 <td>{{ invoice.issued_at | date('Y-m-d') }}</td>
