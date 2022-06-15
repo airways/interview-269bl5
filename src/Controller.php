@@ -7,6 +7,7 @@ use Slim\Exception\HttpNotFoundException;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
+
 class Controller
 {
     private \Twig\Environment $twig;
@@ -15,6 +16,7 @@ class Controller
     public function __construct(ContainerInterface $container) {
         $this->twig = $container->get('twig');
         $this->repository = $container->get('repository');
+        $this->mailer = $container->get('mailer');
     }
 
     public function home(Request $request, Response $response): Response
@@ -25,18 +27,49 @@ class Controller
 
     public function paymentsReport(Request $request, Response $response): Response
     {
-        $invoiceResult = $this->repository->allInvoices();
-        $invoices = [];
+        $params = $request->getQueryParams();
+        if(!isset($params['format'])) { $params['format'] = 'html'; }
 
-        while ($invoice = $invoiceResult->fetch_assoc()) {
-            $invoice['payments'] = $this->repository->invoicePayments($invoice['invoice_id'])->fetch_all(MYSQLI_ASSOC);
-            $invoices[] = $invoice;
+        $invoices = $this->repository->allInvoicesWithPayments();
+
+        $context = [
+            'invoices' => $invoices,
+        ];
+
+        if($params['format'] == 'json') {
+            $response = $response->withHeader('Content-type', 'application/json');
+            $content = json_encode($context);
+        } else {
+            $content = $this->twig->render('paymentsReport.html.twig', $context);
         }
 
-        $content = $this->twig->render('paymentsReport.html.twig', [
-            'invoices' => $invoices,
-        ]);
+        $response->getBody()->write($content);
 
+        error_log('memory_get_peak_usage='.memory_get_peak_usage());
+
+        return $response;
+    }
+
+    public function sendReminderEmail(Request $request, Response $response, array $args): Response
+    {
+        error_log('sendReminderEmail::'.print_r($args, true));
+
+        $invoiceId = $args['invoiceId'];
+
+        $contact = $this->repository->contactDetails($invoiceId);
+
+        $mailerResult = $this->mailer->send(
+            [$contact->email],
+            'Reminder for invoice '. $invoiceId,
+            'Please pay your past due balance on invoice '.$invoiceId.'. If you have already sent payment, please disregard this notice.');
+        
+        $context = [
+            'error' => !$mailerResult->isSuccess,
+            'message' => $mailerResult->errorMessage ?: '',
+        ];
+
+        $content = json_encode($context);
+        error_log('sendReminderEmail::result='.$content);
         $response->getBody()->write($content);
         return $response;
     }
