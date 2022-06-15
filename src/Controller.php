@@ -56,7 +56,8 @@ class Controller
 
         $invoiceId = $args['invoiceId'];
 
-        $contact = $this->repository->contactDetails($invoiceId);
+        $invoice = $this->repository->invoiceDetails($invoiceId);
+        $contact = $this->repository->contactDetails($invoice->contact_id);
 
         $mailerResult = $this->mailer->send(
             [$contact->email],

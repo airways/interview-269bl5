@@ -73,13 +73,17 @@ SQL
         static $contacts = [];
         if(isset($contacts[$contactId])) { return $contacts[$contactId]; }
         
-        $result = new Contact($this->queryWithParams(
-            "SELECT * FROM contacts WHERE contact_id = ? LIMIT 1",
-            [$contactId]
-        ));
-        
-        $contacts[$contactId] = $result;
-        return $result;
+        $stmt = $this->db->prepare("SELECT * FROM contacts WHERE contact_id = ? LIMIT 1");
+        if($stmt->execute([$contactId])) {
+            $res = $stmt->get_result();
+            $row = $res->fetch_assoc();
+            $result = new Contact($row);
+            $contacts[$contactId] = $result;
+            return $result;
+        } else {
+            error_log('!! Could not find Contact with id '.$contactId);
+            return null;
+        }
     }
 
     public function invoiceDetails(int $invoiceId, $fromDatabaseRow = null): Invoice
@@ -88,55 +92,21 @@ SQL
         if(isset($invoices[$invoiceId])) { return $invoices[$invoiceId]; }
         
         if(is_null($fromDatabaseRow)) {
-            $fromDatabaseRow = $this->queryWithParams(
-                "SELECT * FROM contacts WHERE contact_id = ? LIMIT 1",
-                [$contactId]
-            );
+            $stmt = $this->db->prepare("SELECT *, c.first_name, c.last_name FROM invoices NATURAL JOIN contacts c WHERE invoice_id = ? LIMIT 1");
+            if($stmt->execute([$invoiceId])) {
+                $res = $stmt->get_result();
+                $row = $res->fetch_assoc();
+                $fromDatabaseRow = $row;
+            } else {
+                error_log('!! Could not find Invoice with id '.$invoiceId);
+                return null;
+            }
         }
 
         $result = new Invoice($fromDatabaseRow);
         
         $invoices[$invoiceId] = $result;
         return $result;
-    }
-
-    private function queryWithParams(string $sql, array $params): array
-    {
-        $stmt = $this->db->prepare($sql); 
-        if(count($params) > 0) {
-            $refValues = $this->refValues($params);
-            call_user_func_array(array($stmt, 'bind_param'), $refValues);
-        } else {
-            $res = @mysqli_query($hesk_db_link, $query);
-        }
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
-    }
-
-    /**
-     * This functions generates reference values from an array so it can be passed to mysqli bind_param
-     * which otherwise does not accept plain arrays for parameters.
-     */
-    private function refValues(&$arr): array
-    {
-        if (strnatcmp(phpversion(),'5.3') >= 0) //Reference is required for PHP 5.3+
-        {
-            $refs = array(0);
-            $types = '';
-            foreach($arr as $key => $value) {
-                if(is_numeric($value)) {
-                    $typ = 'i';
-                    $value = (int)$value;
-                } else {
-                    $typ = 's';
-                }
-                $types .= $typ;
-                $refs[$key+1] = &$arr[$key];
-            }
-            $refs[0] = $types;
-            return $refs;
-        }
-        return $arr;
     }
 
 }

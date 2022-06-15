@@ -29,7 +29,7 @@ class Invoice
 
     public function __construct(array $row)
     {
-        if(!is_null($row['invoice_id'])) {
+        if(isset($row['invoice_id'])) {
             $this->invoice_id = $row['invoice_id'];
             $this->contact_id = $row['contact_id'];
             $this->first_name = $row['first_name'];
