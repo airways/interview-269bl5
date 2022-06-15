@@ -35,7 +35,6 @@ SQL
             NATURAL JOIN contacts c
             LEFT JOIN payments p ON p.invoice_id = i.invoice_id
             ORDER BY i.issued_at, p.payment_id
-LIMIT 500 -- TODO: REMOVE ME -- for css/js testing
 SQL
         );
 
