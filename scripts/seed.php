@@ -1,22 +1,17 @@
+#!/usr/bin/php -q
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
 
 /** @var mysqli $db */
 $db = require __DIR__ . '/../dbConnection.php';
+require __DIR__ . '/../inc/insertStatements.inc.php';
+
 $faker = \Faker\Factory::create();
 
 $db->query('TRUNCATE payments');
 $db->query('TRUNCATE invoices');
 $db->query('TRUNCATE contacts');
-
-$contactSql = 'INSERT INTO contacts (first_name, last_name, email, street_address, city, state_code, postal_code, phone, country_code)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, "US")';
-$contactStmt = $db->prepare($contactSql);
-$invoiceSql = 'INSERT INTO invoices (contact_id, identifier, total, issued_at) VALUES (?, ?, ?, FROM_UNIXTIME(?))';
-$invoiceStmt = $db->prepare($invoiceSql);
-$paymentSql = 'INSERT INTO payments (invoice_id, amount, paid_at) VALUES (?, ?, FROM_UNIXTIME(?))';
-$paymentStmt = $db->prepare($paymentSql);
 
 $thisYear = date('Y');
 $lastYear = $thisYear - 1;
