@@ -1,2 +1,4 @@
 /.mysql_data
 /vendor
+.migrations.log
+.tests-migrations.log
