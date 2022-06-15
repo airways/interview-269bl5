@@ -5,6 +5,7 @@ RUN docker-php-ext-install mbstring intl mysqli pdo_mysql
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+COPY ./tweaks.ini /usr/local/etc/php/conf.d/tweaks.ini
 
 WORKDIR /app
 STOPSIGNAL SIGINT
