@@ -13,9 +13,12 @@
         "twig/intl-extra": "^3.4",
         "slim/slim": "4.*",
         "slim/psr7": "^1.5",
-        "php-di/php-di": "^6.4"
+        "php-di/php-di": "^6.4",
+        "nesbot/carbon": "^2.58",
+        "davedevelopment/phpmig": "*"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.19"
+        "fakerphp/faker": "^1.19",
+        "phpunit/phpunit": "^9"
     }
 }
