@@ -56,3 +56,36 @@ able to set up the application in something like (in the case of PHPStorm) a "PH
 3. Update the MySQL configuration in `dbConnection.php` as appropriate for your setup
 4. Load the database structure from `cpp_interview.schema.sql`
 5. Load the seed data by running `scripts/seed.php`
+
+### Running tests
+
+Integration test for this project uses a separate copy of the full docker-compose project 
+including a separate database instance.
+
+You can run the integration test with:
+
+   ./script/run-tests.php
+
+This should be done outside of the container as it spins up a separate stack.
+
+You may need to adjust the #! line in this script or just run it with:
+
+   php ./script/run-tests.php
+
+### Database Migrations
+
+This project now has phpmig for migrations. Migrations are applied upon startup after the base
+DB image seeds itself, ensuring each boot of the stack has a 100% creatable environment.
+
+See phpmig documentation for more on how to create migrations:
+
+   https://github.com/davedevelopment/phpmig
+
+Note that this currently uses a plain text log file as the record of what migrations have been
+applied. This needs to be updated to be a database backed adapter (see docs above), but for
+time I have left it as the plain text storage. Files used for this purpose are under migrations/.migrations.log and migrations/.tests-migrations.log.
+
+These files should not be checked into source control and need to be deleted any time the DB
+is recreated. For now, the test scripts clear their own migration log and the Dockerfile clears
+the migration file on startup. This might not be 100% accurate if you are only restarting the
+web container.
